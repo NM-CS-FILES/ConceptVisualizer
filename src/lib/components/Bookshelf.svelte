@@ -9,41 +9,42 @@
     import Book from "./Book.svelte";
 
     export let bookCount: number;
-    
+
     let booksInfo: BookInfo[] = [ ];
-    let books: Book[] = [ ];
 
     onMount(() => {
         for (let i = 0; i != bookCount; i++) {
-            booksInfo[i] = new BookInfo((i * 32).toString());
+            booksInfo[i] = new BookInfo(i, Math.floor(Math.random() * 256));
         }
     });
 
-    export function at(idx: number): [ BookInfo, Book ] {
-        return [ booksInfo[idx], books[idx] ];
+    export function getBooksInfo(): BookInfo[] {
+        return booksInfo;
     }
 
-    export function remove(idx: number): BookInfo {
-        let entry = at(idx);
-        booksInfo.splice(idx, 1);
-        books = books.splice(idx, 1);
-        booksInfo = booksInfo;
-        books = books;
+    export function get(addr: number): [BookInfo, number] {
+        let idx = -1;
+        let bookInfo = booksInfo.find((val, valIdx) => { 
+            idx = valIdx;
+            return val.addr === addr; 
+        })!;
+        return [bookInfo, idx];
+    }
+
+    export function remove(addr: number): BookInfo {
+        let entry = get(addr);
+        booksInfo.splice(entry[1], 1);
+        booksInfo = booksInfo.sort(BookInfo.compare);
         return entry[0];
     }
 
     export function add(bookInfo: BookInfo): void {
         booksInfo.push(bookInfo);
-        booksInfo = booksInfo;
-        books = books;
+        booksInfo = booksInfo.sort(BookInfo.compare);
     }
 
-    export function highlightAt(idx: number): void {
-        books.at(idx)?.highlight();
-    }
-
-    export function unhighlightAt(idx: number): void {
-        books.at(idx)?.unhighlight();
+    export function contains(value: number): boolean {
+        return booksInfo.find((val) => { return val.addr === value; }) !== undefined;
     }
 </script>
 
@@ -51,7 +52,7 @@
 
 <div>
     {#each booksInfo as bookInfo, i}
-        <Book bind:this={books[i]} {bookInfo}/>
+        <Book {bookInfo}/>
     {/each}
 </div>
 

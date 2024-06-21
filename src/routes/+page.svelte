@@ -1,41 +1,90 @@
 <script lang="ts">
     import Bookshelf from "$lib/components/Bookshelf.svelte";
-    import { BookInfo } from "$lib/classes/BookInfo";
     import CodeMirror from "svelte-codemirror-editor";
-    import { javascript } from "@codemirror/lang-javascript";
 
-    let editor:     CodeMirror;
+    import { javascript } from "@codemirror/lang-javascript";
+    import { EditorView } from "@codemirror/view";
+
+    let view:       EditorView;
     let bookshelf:  Bookshelf;
     let table:      Bookshelf;
 
-    const editorInitContent = "function getBookOffShelf(idx, table) {\n  // User code goes here\n}";
+    let tripsToBookshelf = 0;
+    let editorContent = "function getBooksOffShelf(idx) {\n  return [ idx ];\n}";
 
-    function bookshelfToTable(idx: number) {
-        let bookInfo = bookshelf.remove(idx);
-        table.add(bookInfo);
+    function bookshelfToTable(addr: number) {
+        if (bookshelf.contains(addr)) {
+            const bookInfo = bookshelf.remove(addr);
+            table.add(bookInfo);
+        }
     }
 
-    function tableToBookshelf(idx: number) {
-        let bookInfo = table.remove(idx);
-        bookshelf.add(bookInfo);
+    function tableToBookshelf(addr: number) {
+        if (table.contains(addr)) {
+            const bookInfo = table.remove(addr);
+            bookshelf.add(bookInfo);
+        }
     }
 
+    function getUserCallback(): any {
+        // - https://stackoverflow.com/questions/60951075/not-able-access-function-after-eval
+        // vvv EVIL!!!!! CHANGE ASAP!!!
+        return eval(`${editorContent}; getBooksOffShelf;`);
+    }
+
+    function study() {
+        const getBooksOffShelf = getUserCallback();
+        const bookInfos = bookshelf.getBooksInfo();
+
+        console.log("Book Info Len " + bookInfos.length);
+
+        while(bookInfos.length !== 0) {
+            let bookInfo = bookInfos[0];
+
+            if (table.contains(bookInfo.addr)) {
+                continue;
+            }
+
+            let bookAddrs = getBooksOffShelf(bookInfo.addr);
+
+            bookAddrs.forEach((addr: number) => {
+                bookshelfToTable(addr);
+            });
+
+            ++tripsToBookshelf;
+        }
+    }
 </script>
 
 <!---->
 
 <div class="leftPanel">
-    <CodeMirror bind:this={editor} lang={javascript()} value={editorInitContent}/>
+    <CodeMirror 
+        bind:value={editorContent} 
+        on:ready={(e) => { view = e.detail; }}
+        lang={javascript()}
+    />
 </div>
 
 <div class="rightPanel">
     <p>Bookshelf:</p>
-    <Bookshelf bind:this={bookshelf} bookCount={16}/>
+    <Bookshelf 
+        bind:this={bookshelf} 
+        bookCount={16}
+    />
 
     <p>Table:</p>
-    <Bookshelf bind:this={table} bookCount={0}/>
+    <Bookshelf 
+        bind:this={table}  
+        bookCount={0}
+    />
 
-    <button on:click={() => { bookshelfToTable(0) }}>Study</button>
+    <p>
+        Trips To Bookshelf:
+        <b>{tripsToBookshelf}</b>
+    </p>
+    
+    <button on:click={() => { study() }}>Study</button>
 </div>
 
 <!---->

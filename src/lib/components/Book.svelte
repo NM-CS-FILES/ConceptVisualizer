@@ -32,6 +32,9 @@
     <!-- Spine -->
     <rect bind:this={spine} x={0} y={0} width={bookInfo.width} height={bookInfo.height} fill={bookInfo.color} stroke="black" stroke-width="0px"/>
 
-    <!-- Shadow -->
+    <!-- Spine Shadow -->
     <rect x={bookInfo.width / 2} y={0} width={bookInfo.width / 2} height={bookInfo.height} opacity=0.15/>
+
+    <!-- Spine Value (addr) -->
+    <text x="50%" y="50%" fill="black" dominant-baseline="middle" text-anchor="middle">{bookInfo.addr}</text>
 </svg>

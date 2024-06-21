@@ -6,18 +6,25 @@ export class BookInfo {
     private static WidthRange:  number[] = [ 24, 60 ];
     private static HeightRange: number[] = [ 145, 185 ];
 
-    title: string;
+    addr: number;
+    value: number;
+
     width: number;
     height: number;
     color: Color;
 
-    constructor(title: string) {
+    constructor(addr: number, value: number) {
         // seed, deterministic
-        const rand = new Rand(title);
+        const rand = new Rand(value.toString());
 
-        this.title = title;
+        this.addr = addr;
+        this.value = value;
         this.width = ((BookInfo.WidthRange[1] - BookInfo.WidthRange[0]) * rand.next()) + BookInfo.WidthRange[0];
         this.height = ((BookInfo.HeightRange[1] - BookInfo.HeightRange[0]) * rand.next()) + BookInfo.HeightRange[0];
         this.color = BookInfo.Colors[Math.floor(rand.next() * BookInfo.Colors.length)];
+    }
+
+    static compare(a: BookInfo, b: BookInfo): number {
+        return a.addr - b.addr;
     }
 };
