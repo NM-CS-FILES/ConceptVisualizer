@@ -1,30 +1,18 @@
 <script lang="ts">
     import Bookshelf from "$lib/components/Bookshelf.svelte";
+    import Table from "$lib/components/Table.svelte";
     import CodeMirror from "svelte-codemirror-editor";
 
     import { javascript } from "@codemirror/lang-javascript";
     import { EditorView } from "@codemirror/view";
+    import { BookInfo } from "$lib/classes/BookInfo";
 
     let view:       EditorView;
     let bookshelf:  Bookshelf;
-    let table:      Bookshelf;
+    let table:      Table;
 
     let tripsToBookshelf = 0;
-    let editorContent = "function getBooksOffShelf(idx) {\n  return [ idx ];\n}";
-
-    function bookshelfToTable(addr: number) {
-        if (bookshelf.contains(addr)) {
-            const bookInfo = bookshelf.remove(addr);
-            table.add(bookInfo);
-        }
-    }
-
-    function tableToBookshelf(addr: number) {
-        if (table.contains(addr)) {
-            const bookInfo = table.remove(addr);
-            bookshelf.add(bookInfo);
-        }
-    }
+    let editorContent = "function getBooksOffShelf(idx) {\n  return [ idx, idx + 1 ];\n}";
 
     function getUserCallback(): any {
         // - https://stackoverflow.com/questions/60951075/not-able-access-function-after-eval
@@ -32,27 +20,42 @@
         return eval(`${editorContent}; getBooksOffShelf;`);
     }
 
+    function reset() {
+        tripsToBookshelf = 0;
+        bookshelf.getBooks().forEach((book) => book.show());
+    }
+
     function study() {
-        const getBooksOffShelf = getUserCallback();
-        const bookInfos = bookshelf.getBooksInfo();
+        const userCallback = getUserCallback();
+        let timeout = 750;
+        tripsToBookshelf = 0;
 
-        console.log("Book Info Len " + bookInfos.length);
-
-        while(bookInfos.length !== 0) {
-            let bookInfo = bookInfos[0];
-
-            if (table.contains(bookInfo.addr)) {
-                continue;
+        bookshelf.getBooks().forEach((book, idx) => {
+            if (book.isHidden()) {
+                return;
             }
 
-            let bookAddrs = getBooksOffShelf(bookInfo.addr);
+            let localIdxs: number[] = userCallback(idx);
+            let timeoutOffset = 0;
+            tripsToBookshelf++;
 
-            bookAddrs.forEach((addr: number) => {
-                bookshelfToTable(addr);
+            localIdxs.forEach((localIdx) => {
+                if (localIdx < 0 || localIdx >= bookshelf.getBooks().length) {
+                    return;
+                }
+
+                let localBook = bookshelf.get(localIdx);
+
+                if (localBook.isHidden()) {
+                    return;
+                }
+
+                localBook.hide(timeout);
+                timeoutOffset = 750;
             });
 
-            ++tripsToBookshelf;
-        }
+            timeout += timeoutOffset;
+        });
     }
 </script>
 
@@ -70,13 +73,12 @@
     <p>Bookshelf:</p>
     <Bookshelf 
         bind:this={bookshelf} 
-        bookCount={16}
+        data={"Hello, World!!!"}
     />
 
     <p>Table:</p>
-    <Bookshelf 
+    <Table 
         bind:this={table}  
-        bookCount={0}
     />
 
     <p>
@@ -84,7 +86,8 @@
         <b>{tripsToBookshelf}</b>
     </p>
     
-    <button on:click={() => { study() }}>Study</button>
+    <button on:click={() => study()}>Study</button>
+    <button on:click={() => reset()}>Reset</button>
 </div>
 
 <!---->
