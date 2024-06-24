@@ -45,9 +45,8 @@ export class BookInfo {
         this.width  = randRange(BookInfo.WidthRange[0], BookInfo.WidthRange[1]);
         this.height = randRange(BookInfo.HeightRange[0], BookInfo.HeightRange[1]);
         this.depth  = randRange(this.height / 2, this.height * 3 / 4);
-
-        this.color = BookInfo.Colors[Math.floor(Math.random() * BookInfo.Colors.length)];
-        this.style = BookStyle[Math.floor(Math.random() * styleCount)];
+        this.color  = BookInfo.Colors[randRange(0, BookInfo.Colors.length)];
+        this.style  = BookStyle[randRange(0, styleCount)];
     }
 
     static compare(a: BookInfo, b: BookInfo): number {

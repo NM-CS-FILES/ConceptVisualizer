@@ -45,12 +45,16 @@
         }
     }
 
+    function mouseLeave(evt: MouseEvent): void {
+        dragSelected.set(undefined);
+    }
+
 </script>
 
 <!---->
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<svg bind:this={svg} width="700px" height="250px" on:mousemove={drag}>
+<svg bind:this={svg} width="700px" height="250px" on:mousemove={drag} on:mouseleave={mouseLeave}>
     {#each booksInfo as bookInfo}
         <Book {bookInfo} flat={true} writableSelected={dragSelected} writableOffset={dragOffset}/>
     {/each}

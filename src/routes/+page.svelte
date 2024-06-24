@@ -73,7 +73,7 @@
     <p>Bookshelf:</p>
     <Bookshelf 
         bind:this={bookshelf} 
-        data={"Hello, World!!!"}
+        data={"Hello, World!!!!"}
     />
 
     <p>Table:</p>

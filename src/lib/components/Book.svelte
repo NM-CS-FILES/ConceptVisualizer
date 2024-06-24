@@ -94,7 +94,7 @@
 
     function mouseLeave(): void {
         svg.style.filter = "";
-        writableSelected?.set(undefined);
+        //writableSelected?.set(undefined);
         unhighlight();
     }
 
@@ -120,7 +120,7 @@
         <rect x={width / 4 * 3} y={0} width={width / 4} {height} opacity=0.15/>
         <rect x={width / 4 * 2} y={0} width={width / 4} {height} opacity=0.10/>
         <rect x={width / 4} y={0} width={width / 4} {height} opacity=0.05/>
-        <text x="50%" y="40%" text-anchor="middle" font-size="24">{bookInfo.title}</text>
+        <text x="50%" y="50%" text-anchor="middle" font-size="24">{bookInfo.title}</text>
     {:else}
         <rect x={width / 2} y={0} width={width / 2} {height} opacity=0.15/>
     {/if}
