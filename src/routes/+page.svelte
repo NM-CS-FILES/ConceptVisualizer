@@ -12,7 +12,7 @@
     let table:      Table;
 
     let tripsToBookshelf = 0;
-    let editorContent = "function getBooksOffShelf(idx) {\n  return [ idx, idx + 1 ];\n}";
+    let editorContent = "function getBooksOffShelf(idx) {\n  return [ idx ];\n}";
 
     function getUserCallback(): any {
         // - https://stackoverflow.com/questions/60951075/not-able-access-function-after-eval
@@ -23,67 +23,37 @@
     function reset() {
         tripsToBookshelf = 0;
         bookshelf.getBooks().forEach((book) => book.show());
+        table.clear();
     }
 
-    function study() {
-        const userCallback = getUserCallback();
-        let timeout = 750;
-        tripsToBookshelf = 0;
+    async function study(): Promise<void> {
+        for (let i = 0; i !== bookshelf.getBooks().length; i++) {
+            console.log(i)
+            let book = bookshelf.getBooks()[i];
+            book.hide();
+            table.push(book.getInfo());
 
-        bookshelf.getBooks().forEach((book, idx) => {
-            if (book.isHidden()) {
-                return;
-            }
-
-            let localIdxs: number[] = userCallback(idx);
-            let timeoutOffset = 0;
-            tripsToBookshelf++;
-
-            localIdxs.forEach((localIdx) => {
-                if (localIdx < 0 || localIdx >= bookshelf.getBooks().length) {
-                    return;
-                }
-
-                let localBook = bookshelf.get(localIdx);
-
-                if (localBook.isHidden()) {
-                    return;
-                }
-
-                localBook.hide(timeout);
-                timeoutOffset = 750;
-            });
-
-            timeout += timeoutOffset;
-        });
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            await table.study();
+        }
     }
 </script>
 
 <!---->
 
 <div class="leftPanel">
-    <CodeMirror 
-        bind:value={editorContent} 
-        on:ready={(e) => { view = e.detail; }}
-        lang={javascript()}
-    />
+    <CodeMirror bind:value={editorContent}  on:ready={(e) => { view = e.detail; }} lang={javascript()}/>
 </div>
 
 <div class="rightPanel">
     <p>Bookshelf:</p>
-    <Bookshelf 
-        bind:this={bookshelf} 
-        data={"Hello, World!!!!"}
-    />
+    <Bookshelf bind:this={bookshelf} data={"Hello, World!!!!"}/>
 
     <p>Table:</p>
-    <Table 
-        bind:this={table}  
-    />
+    <Table bind:this={table}/>
 
     <p>
-        Trips To Bookshelf:
-        <b>{tripsToBookshelf}</b>
+        Trips To Bookshelf: <b>{tripsToBookshelf}</b>
     </p>
     
     <button on:click={() => study()}>Study</button>

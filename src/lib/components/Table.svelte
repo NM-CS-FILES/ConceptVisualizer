@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import { writable, type Writable } from "svelte/store";
     import Book from "./Book.svelte";
+    import { tweened } from "svelte/motion";
 
     let booksInfo: BookInfo[] = [ ];
     let books: Book[] = [ ];
@@ -11,16 +12,53 @@
     //
     //
 
-    onMount(() => {
-        booksInfo.push(new BookInfo("abcd", "b"));
-        booksInfo = booksInfo;
+    onMount(() => { 
     });
 
     //
     //
 
+    export function push(bookInfo: BookInfo): void {
+        booksInfo.push(bookInfo);
+        booksInfo = booksInfo;
+    }
+
     export function contains(title: string): boolean {
         return booksInfo.find((info) => info.title === title) !== undefined;
+    }
+
+    export function centerBook(book: Book): void {
+        let centerX = (svg.width.baseVal.value / 2) - (book.getWidth() / 2);
+        let centerY = (svg.height.baseVal.value / 2) - (book.getHeight() / 2);
+        book.move(centerX, centerY);
+    }
+
+    async function studyBook(book: Book, timeoutOffset = 0): Promise<void> {
+        centerBook(book);
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        book.setBookState("open");
+        centerBook(book);
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        book.setBookState("closed");
+        book.move(300, 300);
+    }
+
+    export async function study(): Promise<void> {
+        let timeout = 0;
+
+        for (let i = 0; i !== books.length; i++) {
+            console.log(`ii = ${i} => ${books.length}`)
+            await studyBook(books[i]);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        clear();
+    }
+
+    export function clear(): void {
+        booksInfo = [ ];
     }
 
     //
@@ -42,11 +80,16 @@
                 bookSvg?.setAttributeNS(null, "y", (position.y - $dragOffset.y).toString());
                 return bookSvg;
             });
+
         }
     }
 
     function mouseLeave(evt: MouseEvent): void {
         dragSelected.set(undefined);
+    }
+    
+    function onClick(evt: MouseEvent): void {
+        study();
     }
 
 </script>
@@ -54,9 +97,10 @@
 <!---->
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<svg bind:this={svg} width="700px" height="250px" on:mousemove={drag} on:mouseleave={mouseLeave}>
-    {#each booksInfo as bookInfo}
-        <Book {bookInfo} flat={true} writableSelected={dragSelected} writableOffset={dragOffset}/>
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<svg bind:this={svg} on:click={onClick} width="700px" height="250px" on:mousemove={drag} on:mouseleave={mouseLeave}>
+    {#each booksInfo as bookInfo, idx}
+        <Book bind:this={books[idx]} {bookInfo} state={"closed"} writableSelected={dragSelected} writableOffset={dragOffset}/>
     {/each}
 </svg>
 
